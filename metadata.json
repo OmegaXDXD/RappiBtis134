@@ -1,0 +1,6 @@
+{
+  "name": "Cafetería 134",
+  "description": "Sistema de pedidos con código QR y acceso con número de control de la credencial escolar para la cafetería del CBTis 134.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

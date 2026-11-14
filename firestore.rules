@@ -1,0 +1,169 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global safety net: deny everything by default
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidStudentProfile(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.userId.size() <= 128 &&
+             data.numeroControl is string &&
+             data.numeroControl.size() >= 6 &&
+             data.numeroControl.size() <= 20 &&
+             data.numeroControl.matches('^[a-zA-Z0-9\\-]+$') &&
+             data.fullName is string &&
+             data.fullName.size() >= 2 &&
+             data.fullName.size() <= 80 &&
+             data.specialty is string &&
+             data.specialty.size() >= 2 &&
+             data.specialty.size() <= 60 &&
+             data.semester is int &&
+             data.semester >= 1 &&
+             data.semester <= 6 &&
+             data.shift is string &&
+             data.shift in ['Matutino', 'Vespertino'] &&
+             (!('email' in data) || (data.email is string && data.email.size() <= 120));
+    }
+
+    function isValidCafeteriaOrder(data) {
+      return data.userId is string &&
+             data.userId == request.auth.uid &&
+             data.userId.size() <= 128 &&
+             data.folio is string &&
+             data.folio.size() >= 4 &&
+             data.folio.size() <= 32 &&
+             data.numeroControl is string &&
+             data.numeroControl.size() >= 6 &&
+             data.numeroControl.size() <= 20 &&
+             data.studentName is string &&
+             data.studentName.size() >= 2 &&
+             data.studentName.size() <= 80 &&
+             data.itemsSummary is string &&
+             data.itemsSummary.size() >= 1 &&
+             data.itemsSummary.size() <= 500 &&
+             data.items is list &&
+             data.items.size() >= 1 &&
+             data.items.size() <= 30 &&
+             data.items[0] is map &&
+             data.totalMxn is number &&
+             data.totalMxn > 0 &&
+             data.totalMxn <= 10000 &&
+             data.pickupWindow is string &&
+             data.pickupWindow.size() >= 2 &&
+             data.pickupWindow.size() <= 60 &&
+             data.paymentMethod is string &&
+             data.paymentMethod in ['Efectivo', 'Transferencia'] &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() <= 200)) &&
+             data.qrPayload is string &&
+             data.qrPayload.size() >= 10 &&
+             data.qrPayload.size() <= 600 &&
+             data.status is string &&
+             data.status in ['recibido', 'preparando', 'listo', 'entregado', 'cancelado'];
+    }
+
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+      allow list: if isSignedIn() && request.auth.uid == userId;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'numeroControl', 'fullName', 'specialty',
+                         'semester', 'shift', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'numeroControl', 'fullName', 'specialty',
+                         'semester', 'shift', 'email', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       isValidStudentProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       isValidStudentProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly([
+                         'numeroControl', 'fullName', 'specialty',
+                         'semester', 'shift', 'email', 'updatedAt'
+                       ]);
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+
+      match /orders/{orderId} {
+        allow list: if isSignedIn() && request.auth.uid == userId;
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(orderId);
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(orderId) &&
+                         incoming().keys().hasAll([
+                           'userId', 'folio', 'numeroControl', 'studentName',
+                           'itemsSummary', 'items', 'totalMxn', 'pickupWindow',
+                           'paymentMethod', 'qrPayload', 'status',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().keys().hasOnly([
+                           'userId', 'folio', 'numeroControl', 'studentName',
+                           'itemsSummary', 'items', 'totalMxn', 'pickupWindow',
+                           'paymentMethod', 'notes', 'qrPayload', 'status',
+                           'createdAt', 'updatedAt'
+                         ]) &&
+                         incoming().status == 'recibido' &&
+                         incoming().createdAt is timestamp &&
+                         incoming().createdAt <= request.time &&
+                         incoming().updatedAt is timestamp &&
+                         incoming().updatedAt <= request.time &&
+                         isValidCafeteriaOrder(incoming());
+
+        allow update: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(orderId) &&
+                         isValidCafeteriaOrder(incoming()) &&
+                         existing().status != 'entregado' &&
+                         existing().status != 'cancelado' &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().updatedAt is timestamp &&
+                         incoming().updatedAt <= request.time &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']) &&
+                         (
+                           (existing().status == 'recibido' && incoming().status in ['preparando', 'cancelado']) ||
+                           (existing().status == 'preparando' && incoming().status == 'listo') ||
+                           (existing().status == 'listo' && incoming().status == 'entregado')
+                         );
+
+        allow delete: if false;
+      }
+    }
+  }
+}

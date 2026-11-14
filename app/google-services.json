@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "576365125242",
+    "project_id": "cafeteria134-7e8a8",
+    "storage_bucket": "cafeteria134-7e8a8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:576365125242:android:1f205eda2ef99794a765c3",
+        "android_client_info": {
+          "package_name": "com.aistudio.cbtis134cafeteria.mxqrkz"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "576365125242-m44qt5nihvgm4lgido2i6one7987f3vg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyArGMMTrgEHtyElXwnSvmH63owrAB1Ah8g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "576365125242-m44qt5nihvgm4lgido2i6one7987f3vg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

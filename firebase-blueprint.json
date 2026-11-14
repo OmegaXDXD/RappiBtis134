@@ -1,0 +1,156 @@
+{
+  "entities": {
+    "StudentProfile": {
+      "title": "StudentProfile",
+      "description": "Perfil del estudiante del CBTis 134 vinculado mediante Google Auth y su Número de Control de la credencial escolar.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID de Firebase Auth del estudiante propietario."
+        },
+        "numeroControl": {
+          "type": "string",
+          "description": "Número de control leído de la credencial escolar del CBTis 134."
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Nombre completo del estudiante."
+        },
+        "specialty": {
+          "type": "string",
+          "description": "Especialidad técnica en el CBTis 134 (ej. Programación, Contabilidad)."
+        },
+        "semester": {
+          "type": "integer",
+          "description": "Semestre actual del estudiante (1 al 6)."
+        },
+        "shift": {
+          "type": "string",
+          "enum": ["Matutino", "Vespertino"],
+          "description": "Turno escolar del estudiante."
+        },
+        "email": {
+          "type": "string",
+          "description": "Correo electrónico de la cuenta Google vinculada."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha de creación (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha de última actualización (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "numeroControl",
+        "fullName",
+        "specialty",
+        "semester",
+        "shift",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CafeteriaOrder": {
+      "title": "CafeteriaOrder",
+      "description": "Pedido realizado por el estudiante en la Cafetería del CBTis 134 con su código QR de entrega.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "UID de Firebase Auth del estudiante propietario del pedido."
+        },
+        "folio": {
+          "type": "string",
+          "description": "Folio único legible del pedido (ej. CBT134-4821)."
+        },
+        "numeroControl": {
+          "type": "string",
+          "description": "Número de control escolar asociado al pedido."
+        },
+        "studentName": {
+          "type": "string",
+          "description": "Nombre del estudiante para entrega en barra."
+        },
+        "itemsSummary": {
+          "type": "string",
+          "description": "Resumen legible de platillos y bebidas del pedido."
+        },
+        "items": {
+          "type": "array",
+          "description": "Lista estructurada de artículos del pedido."
+        },
+        "totalMxn": {
+          "type": "number",
+          "description": "Total del pedido en pesos mexicanos (MXN)."
+        },
+        "pickupWindow": {
+          "type": "string",
+          "description": "Horario o receso seleccionado para recoger el pedido."
+        },
+        "paymentMethod": {
+          "type": "string",
+          "enum": ["Efectivo", "Transferencia"],
+          "description": "Método de pago al recoger en cafetería."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Indicaciones opcionales para cocina."
+        },
+        "qrPayload": {
+          "type": "string",
+          "description": "Cadena codificada en el código QR del ticket."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["recibido", "preparando", "listo", "entregado", "cancelado"],
+          "description": "Estado del pedido."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha de creación (FieldValue.serverTimestamp())."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha de última actualización (FieldValue.serverTimestamp())."
+        }
+      },
+      "required": [
+        "userId",
+        "folio",
+        "numeroControl",
+        "studentName",
+        "itemsSummary",
+        "items",
+        "totalMxn",
+        "pickupWindow",
+        "paymentMethod",
+        "qrPayload",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/StudentProfile"
+      },
+      "description": "Perfil del estudiante del CBTis 134 con su Número de Control."
+    },
+    "/users/{userId}/orders/{orderId}": {
+      "schema": {
+        "$ref": "#/entities/CafeteriaOrder"
+      },
+      "description": "Pedidos de cafetería con ticket QR pertenecientes al estudiante."
+    }
+  }
+}
